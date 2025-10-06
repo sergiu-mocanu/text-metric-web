@@ -3,48 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <title>Textual Similarity Metrics</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; background: #fafafa; color: #333; }
+        h1 { text-align: center; margin-bottom: 1.5em; }
+        form { background: #fff; padding: 1.5em; border-radius: 12px;box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 120px; margin-bottom: 1em; padding: .5em; font-family: monospace;}
+        .section-title { margin-top: 1em; font-weight: bold; }
+        .checkbox-group { margin: .5em 0 1em 0; }
+        .buttons { display: flex; gap: 1em; }
+        input[type="submit"], button {
+            background: #007bff; color: white; border:none; padding: .6em 1.2em;
+            border-radius: 8px; cursor: pointer; transition: background .2s;
+        }
+        input[type="submit"]:hover, button:hover {background: #0056b3; }
+        .results { margin-top: 2em; background: #e9f5ff; padding: 1em; border-radius: 8px; }
+        .error { color: red; font-weight: bold; }
+    </style>
 </head>
 <body>
     <h1>Textual Similarity Metrics</h1>
+
+    <div id="loading-overlay" aria-hidden="true">
+      <div class="loader-box">
+        <div class="spinner"></div>
+        <div class="loader-text">⏳ Measuring metrics, please wait...</div>
+      </div>
+    </div>
+
+    <style>
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.8);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    #loading-overlay[aria-hidden="false"] { display: flex; }
+
+    .loader-box { text-align: center; font-family: sans-serif; color: #333; }
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border: 6px solid #eee;
+      border-top: 6px solid #007bff;
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loader-text { font-size: 1rem; }
+    </style>
+
+    {% if error_message %}
+        <p class="error">{{ error_message }}</p>
+    {% endif %}
+
     <form method="POST">
         {% csrf_token %}
-        <label>Reference Script:</label><br>
-        <textarea name="baseline" rows="20" cols="120">{{ request.POST.baseline }}</textarea><br>
 
-        <label>Generated Script:</label><br>
-        <textarea name="prediction" rows="20" cols="120">{{ request.POST.prediction }}</textarea><br>
+        <div class="section-title">Baseline Script:</div>
+        <textarea name="baseline_script" placeholder="Enter the reference script...">{{ baseline_script }}</textarea>
 
-        <label>Metrics:</label><br>
-        <input type="checkbox" id="select_all"><label for="select_all"><strong>All metrics</strong></label><br>
+        <div class="section-title">AI Script:</div>
+        <textarea name="ai_script" placeholder="Enter the generated script...">{{ ai_script }}</textarea>
 
-        {% for m in available_metrics %}
-            <input type="checkbox" name="metrics" value="{{ m }}" class="metric_checkbox"
-            {% if m in selected_metrics %}checked{% endif %}> {{ m }}<br>
-        {% endfor %}
+        <div class="section-title">Select Metrics:</div>
+        <label><input type="checkbox" id="select_all"> Select All</label>
+        <div class="checkbox-group">
+            {% for m in available_metrics %}
+                <label><input type="checkbox" name="metrics" value="{{ m }}" class="metric_checkbox"
+                    {% if m in selected_metrics %}checked{% endif %}> {{ m }}</label><br>
+            {% endfor %}
+        </div>
 
-        <button type="submit">Compare</button>
+        <div class="buttons">
+            <input type="submit" value="Compare">
+            <button type="button" onclick="window.location.href=window.location.pathname">Reset</button>
+        </div>
     </form>
 
-    {%  if error_message %}
-        <p style="color:red;">{{ error_message }}</p>
-    {%  endif %}
-
     {% if similarity_scores %}
-        <h2>Similarity Results:</h2>
-        <ul>
-        {% for metric, score in similarity_scores.items %}
-            <li>{{ metric }}: {{ score }}</li>
-        {% endfor %}
-        </ul>
+        <div class="results">
+            <h2>Results</h2>
+            <ul>
+                {%  for metric, score in similarity_scores.items %}
+                    <li><b>{{ metric }}</b>: {{ score }}</li>
+                {% endfor %}
+            </ul>
+        </div>
     {% endif %}
 
     <script>
         const selectAll = document.getElementById('select_all');
         const checkboxes = document.querySelectorAll('.metric_checkbox');
-
         selectAll.addEventListener('change', function() {
-            checkboxes.forEach(cb => cb.checked = this.checked)
+            checkboxes.forEach(cb => cb.checked = this.checked);
         });
+
+        const form = document.querySelector('form');
+        const loading = document.getElementById('loading-overlay');
+        form.addEventListener('submit', () => {
+            loading.style.display = 'block';
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('loading-overlay');
+            const form = document.querySelector('form');
+
+            if (overlay) overlay.setAttribute('aria-hidden', 'true');
+
+            if (!form || !overlay) {
+                return;
+            }
+
+            form.addEventListener('submit', function(e) {
+                const valid = typeof form.checkValidity === 'function' ? form.checkValidity() : true;
+                if (valid) {
+                    overlay.setAttribute('aria-hidden', 'false');
+                } else {
+                    if (typeof form.reportValidity === 'function') form.reportValidity();
+                }
+            });
+            window.addEventListener('pageshow', () => overlay.setAttribute('aria-hidden', 'true'));
+        });
+
     </script>
 </body>
 </html>
