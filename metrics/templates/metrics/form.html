@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Textual Similarity Metrics</title>
+</head>
+<body>
+    <h1>Textual Similarity Metrics</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label>Reference Script:</label><br>
+        <textarea name="baseline" rows="20" cols="120">{{ request.POST.baseline }}</textarea><br>
+
+        <label>Generated Script:</label><br>
+        <textarea name="prediction" rows="20" cols="120">{{ request.POST.prediction }}</textarea><br>
+
+        <label>Metrics:</label><br>
+        <input type="checkbox" id="select_all"><label for="select_all"><strong>All metrics</strong></label><br>
+
+        {% for m in available_metrics %}
+            <input type="checkbox" name="metrics" value="{{ m }}" class="metric_checkbox"
+            {% if m in selected_metrics %}checked{% endif %}> {{ m }}<br>
+        {% endfor %}
+
+        <button type="submit">Compare</button>
+    </form>
+
+    {%  if error_message %}
+        <p style="color:red;">{{ error_message }}</p>
+    {%  endif %}
+
+    {% if similarity_scores %}
+        <h2>Similarity Results:</h2>
+        <ul>
+        {% for metric, score in similarity_scores.items %}
+            <li>{{ metric }}: {{ score }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    <script>
+        const selectAll = document.getElementById('select_all');
+        const checkboxes = document.querySelectorAll('.metric_checkbox');
+
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = this.checked)
+        });
+    </script>
+</body>
+</html>

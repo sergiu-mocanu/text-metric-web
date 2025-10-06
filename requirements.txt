@@ -1,0 +1,7 @@
+Django>=5.0,<6.0
+evaluate
+datasets>=3.6.0
+rouge-score
+sacrebleu
+codebleu
+tree-sitter-python==0.21
