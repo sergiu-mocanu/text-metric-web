@@ -7,7 +7,7 @@
         body { font-family: sans-serif; margin: 2em; background: #fafafa; color: #333; }
         h1 { text-align: center; margin-bottom: 1.5em; }
         form { background: #fff; padding: 1.5em; border-radius: 12px;box-shadow: 0 0 8px rgba(0,0,0,0.1); }
-        textarea { width: 100%; height: 120px; margin-bottom: 1em; padding: .5em; font-family: monospace;}
+        textarea { width: 100%; height: 250px; margin-bottom: 1em; padding: .5em; font-family: monospace;}
         .section-title { margin-top: 1em; font-weight: bold; }
         .checkbox-group { margin: .5em 0 1em 0; }
         .buttons { display: flex; gap: 1em; }
@@ -57,10 +57,6 @@
     .loader-text { font-size: 1rem; }
     </style>
 
-    {% if error_message %}
-        <p class="error">{{ error_message }}</p>
-    {% endif %}
-
     <form method="POST">
         {% csrf_token %}
 
@@ -85,6 +81,10 @@
         </div>
     </form>
 
+    {% if error_message %}
+        <p class="error">{{ error_message }}</p>
+    {% endif %}
+
     {% if similarity_scores %}
         <div class="results">
             <h2>Results</h2>
@@ -94,6 +94,37 @@
                 {% endfor %}
             </ul>
         </div>
+    {% endif %}
+
+    {%  if recent %}
+        <h3>Recent comparisons</h3>
+        <ul>
+        {%  for c in recent %}
+            <li>
+                <strong>{{  c.created_at | date:"Y-m-d H:i" }}</strong><br>
+                <em>Metrics:</em> {{ c.metrics_used }}<br>
+                <em>Result:</em>
+                <ul>
+                    {%  for key, value in c.results.items %}
+                        <li>{{ key }}: {{ value }}</li>
+                    {% endfor %}<br>
+                </ul>
+            <em>Baseline excerpt: </em>
+            <div class="toggle-container">
+                <pre class="excerpt">{{ c.baseline_script | truncatechars:120 }}</pre>
+                <pre class="full-text" style="display:none;">{{  c.baseline_script }}</pre>
+                <a href="#" class="toggle-link">Show more</a><br><br>
+            </div>
+
+            <em>AI script excerpt: </em>
+            <div class="toggle-container">
+                <pre class="excerpt">{{ c.ai_script | truncatechars:120 }}</pre>
+                <pre class="full-text" style="display:none;">{{  c.ai_script }}</pre>
+                <a href="#" class="toggle-link">Show more</a><br><br>
+            </div>
+            </li>
+        {% endfor %}
+        </ul>
     {% endif %}
 
     <script>
@@ -130,6 +161,25 @@
             window.addEventListener('pageshow', () => overlay.setAttribute('aria-hidden', 'true'));
         });
 
+        document.querySelectorAll('.toggle-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const li = this.parentElement;
+                const excerpt = li.querySelector('.excerpt');
+                const full = li.querySelector('.full-text');
+
+                if (full.style.display === 'none') {
+                    full.style.display = 'block';
+                    excerpt.style.display = 'none';
+                    this.textContent = 'Show less';
+                } else {
+                    full.style.display = 'none';
+                    excerpt.style.display = 'block';
+                    this.textContent = 'Show more';
+                }
+            });
+        });
     </script>
+
 </body>
 </html>

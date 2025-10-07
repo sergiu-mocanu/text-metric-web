@@ -1,6 +1,7 @@
 import io
 import contextlib
 import signal
+from typing import Union
 from enum import StrEnum
 
 stderr = io.StringIO()
@@ -12,28 +13,27 @@ from codebleu import calc_codebleu
 
 
 class TextMetric(StrEnum):
-    BL = 'bleu'
-    CB = 'codebleu'
-    RG = 'rouge'
-    MT = 'meteor'
-    CH = 'chrf'
+    def __new__(cls, value, alias):
+        obj = str.__new__(cls, value)
+        obj._value_ = value
+        obj.alias = alias
+        return obj
 
+    BL = ('bleu', 'BLEU')
+    CB = ('codebleu', 'CodeBLEU')
+    RG = ('rouge', 'ROUGE')
+    MT = ('meteor', 'METEOR')
+    CH = ('chrf', 'ChrF')
 
-def metric_to_title(metric: TextMetric = None):
-    # Function that returns the name of a metric used in the confusion matrix representation
-    title = ''
-    match metric:
-        case TextMetric.BL:
-            title = 'BLEU'
-        case TextMetric.CB:
-            title = 'CodeBLEU'
-        case TextMetric.RG:
-            title = 'ROUGE'
-        case TextMetric.MT:
-            title = 'METEOR'
-        case TextMetric.CH:
-            title = 'ChrF'
-    return title
+    def __str__(self):
+        return f'{self.__class__.__name__}.{self.name}'
+
+    @classmethod
+    def from_alias(cls, alias):
+        for member in cls:
+            if member.alias == alias:
+                return member
+        raise ValueError(f'No TextMetric with title: {alias}')
 
 
 # noinspection PyUnusedLocal
@@ -108,3 +108,14 @@ def calculate_metric(metric: TextMetric, baseline_script: str, ai_script: str) -
         else:
             score = results[metric_name]
     return score
+
+
+def round_results(value: Union[float, dict], decimals: int=3) -> Union[float, dict]:
+    if isinstance(value, float):
+        result = round(value, decimals)
+    else:
+        result = {}
+        for key, value in value.items():
+            result[key] = round(value, decimals)
+
+    return result
