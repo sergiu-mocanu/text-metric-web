@@ -5,10 +5,14 @@
     {% csrf_token %}
 
     <div class="section-title">Baseline Script:</div>
-    <textarea name="baseline_script" placeholder="Enter the reference script...">{{ baseline_script }}</textarea>
+    <label>
+        <textarea name="baseline_script" placeholder="Enter the reference script...">{{ baseline_script }}</textarea>
+    </label>
 
     <div class="section-title">AI Script:</div>
-    <textarea name="ai_script" placeholder="Enter the generated script...">{{ ai_script }}</textarea>
+    <label>
+        <textarea name="ai_script" placeholder="Enter the generated script...">{{ ai_script }}</textarea>
+    </label>
 
     <div class="section-title">Select Metrics:</div>
     <label><input type="checkbox" id="select_all"> Select All</label>
@@ -38,7 +42,12 @@
             {% endfor %}
         </ul>
     </div>
+    <pre id="chartData" style="display:none">{{ chart_data|safe }}</pre>
+    <div class="chart-container" style="margin-top: 2em">
+        <canvas id="metricsChart"></canvas>
+    </div>
 {% endif %}
+
 
 {%  if recent %}
     <h3>Recent comparisons</h3>

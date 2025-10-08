@@ -1,9 +1,9 @@
 # 🧠 Textual Metrics Web App (WIP)
 A Django-based web interface for evaluating the similarity between two text scripts using various metrics 
 (e.g., BLEU, CodeBLEU, ROUGE, and others).
-Originally developed as a Python project, now extended into a modular web application. <br>
-This web application builds upon my earlier Textual Test Proxy project, which explored the use of textual-similarity 
-metrics and machine learning to evaluate the quality of AI-generated code.
+Originally developed as a Python research project, now extended into a modular web application. <br>
+This web application builds upon my earlier Textual Test Proxy work, which explored the use of textual-similarity 
+metrics and machine learning to predict the functional correctness of AI-generated code variants.
 ___
 
 ## 🚀 Features

@@ -1,6 +1,7 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 from .models import Comparison
+
+import json
 
 from .analysis import calculate_metric, TextMetric, round_results
 
@@ -27,6 +28,7 @@ def metrics_view(request):
                 metric = TextMetric.from_alias(metric_title)
                 similarity_score = calculate_metric(metric=metric, baseline_script=baseline_script,
                                                     ai_script=ai_script)
+
                 rounded = round_results(similarity_score)
                 similarity_scores[metric_title] = rounded
 
@@ -41,6 +43,7 @@ def metrics_view(request):
 
     return render(request, 'metrics/form.html', {
         'similarity_scores': similarity_scores,
+        'chart_data': json.dumps(similarity_scores),
         'available_metrics': available_metrics,
         'error_message': error_message,
         'baseline_script': baseline_script,
