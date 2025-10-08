@@ -1,50 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Textual Similarity Metrics</title>
-</head>
-<body>
-    <h1>Textual Similarity Metrics</h1>
-    <form method="POST">
-        {% csrf_token %}
-        <label>Reference Script:</label><br>
-        <textarea name="baseline" rows="20" cols="120">{{ request.POST.baseline }}</textarea><br>
+{% extends 'base.html' %}
 
-        <label>Generated Script:</label><br>
-        <textarea name="prediction" rows="20" cols="120">{{ request.POST.prediction }}</textarea><br>
+{% block content %}
+<form method="POST">
+    {% csrf_token %}
 
-        <label>Metrics:</label><br>
-        <input type="checkbox" id="select_all"><label for="select_all"><strong>All metrics</strong></label><br>
+    <div class="section-title">Baseline Script:</div>
+    <textarea name="baseline_script" placeholder="Enter the reference script...">{{ baseline_script }}</textarea>
 
+    <div class="section-title">AI Script:</div>
+    <textarea name="ai_script" placeholder="Enter the generated script...">{{ ai_script }}</textarea>
+
+    <div class="section-title">Select Metrics:</div>
+    <label><input type="checkbox" id="select_all"> Select All</label>
+    <div class="checkbox-group">
         {% for m in available_metrics %}
-            <input type="checkbox" name="metrics" value="{{ m }}" class="metric_checkbox"
-            {% if m in selected_metrics %}checked{% endif %}> {{ m }}<br>
+            <label><input type="checkbox" name="metrics" value="{{ m }}" class="metric_checkbox"
+                {% if m in selected_metrics %}checked{% endif %}> {{ m }}</label><br>
         {% endfor %}
+    </div>
 
-        <button type="submit">Compare</button>
-    </form>
+    <div class="buttons">
+        <input type="submit" value="Compare">
+        <button type="button" onclick="window.location.href=window.location.pathname">Reset</button>
+    </div>
+</form>
 
-    {%  if error_message %}
-        <p style="color:red;">{{ error_message }}</p>
-    {%  endif %}
+{% if error_message %}
+    <p class="error">{{ error_message }}</p>
+{% endif %}
 
-    {% if similarity_scores %}
-        <h2>Similarity Results:</h2>
+{% if similarity_scores %}
+    <div class="results">
+        <h2>Results</h2>
         <ul>
-        {% for metric, score in similarity_scores.items %}
-            <li>{{ metric }}: {{ score }}</li>
-        {% endfor %}
+            {%  for metric, score in similarity_scores.items %}
+                <li><b>{{ metric }}</b>: {{ score }}</li>
+            {% endfor %}
         </ul>
-    {% endif %}
+    </div>
+{% endif %}
 
-    <script>
-        const selectAll = document.getElementById('select_all');
-        const checkboxes = document.querySelectorAll('.metric_checkbox');
+{%  if recent %}
+    <h3>Recent comparisons</h3>
+    <ul>
+    {%  for c in recent %}
+        <li>
+            <strong>{{  c.created_at | date:"Y-m-d H:i" }}</strong><br>
+            <em>Metrics:</em> {{ c.metrics_used }}<br>
+            <em>Result:</em>
+            <ul>
+                {%  for key, value in c.results.items %}
+                    <li>{{ key }}: {{ value }}</li>
+                {% endfor %}<br>
+            </ul>
+        <em>Baseline excerpt: </em>
+        <div class="toggle-container">
+            <pre class="excerpt">{{ c.baseline_script | truncatechars:120 }}</pre>
+            <pre class="full-text" style="display:none;">{{  c.baseline_script }}</pre>
+            <a href="#" class="toggle-link">Show more</a><br><br>
+        </div>
 
-        selectAll.addEventListener('change', function() {
-            checkboxes.forEach(cb => cb.checked = this.checked)
-        });
-    </script>
-</body>
-</html>
+        <em>AI script excerpt: </em>
+        <div class="toggle-container">
+            <pre class="excerpt">{{ c.ai_script | truncatechars:120 }}</pre>
+            <pre class="full-text" style="display:none;">{{  c.ai_script }}</pre>
+            <a href="#" class="toggle-link">Show more</a><br><br>
+        </div>
+        </li>
+    {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}
