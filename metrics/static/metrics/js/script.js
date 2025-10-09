@@ -96,7 +96,12 @@ function resultsVisualization() {
             options: {
                 scales: {
                     y: { beginAtZero: true, max: 1}
-                }
+                },
+                plugins: {
+                    legend: { display: false}
+                },
+                barThickness: 'flex',
+                maxBarThickness: 100,
             }
         })
     }

@@ -40,7 +40,7 @@ input[type="submit"]:hover, button:hover {background: #0056b3; }
 
 .chart-container {
     max-width: 600px;
-    margin: 2em auto
+    margin: 2em auto;
 }
 .canvas {
     width: 100% !important;
