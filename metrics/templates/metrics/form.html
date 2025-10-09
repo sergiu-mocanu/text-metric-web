@@ -1,14 +1,19 @@
 {% extends 'base.html' %}
+{% load tz %}
 
 {% block content %}
 <form method="POST">
     {% csrf_token %}
 
     <div class="section-title">Baseline Script:</div>
-    <textarea name="baseline_script" placeholder="Enter the reference script...">{{ baseline_script }}</textarea>
+    <label>
+        <textarea name="baseline_script" placeholder="Enter the reference script...">{{ baseline_script }}</textarea>
+    </label>
 
     <div class="section-title">AI Script:</div>
-    <textarea name="ai_script" placeholder="Enter the generated script...">{{ ai_script }}</textarea>
+    <label>
+        <textarea name="ai_script" placeholder="Enter the generated script...">{{ ai_script }}</textarea>
+    </label>
 
     <div class="section-title">Select Metrics:</div>
     <label><input type="checkbox" id="select_all"> Select All</label>
@@ -38,32 +43,46 @@
             {% endfor %}
         </ul>
     </div>
+    <pre id="chartData" style="display:none">{{ chart_data|safe }}</pre>
+    <div class="chart-container" style="margin-top: 2em">
+        <canvas id="metricsChart"></canvas>
+    </div>
 {% endif %}
 
-{%  if recent %}
-    <h3>Recent comparisons</h3>
+<form method="get" class="filter-form">
+    <label for="filter_metric">Show previous results for:</label>
+    <select name="filter_metric" id="filter_metric" onchange="this.form.submit()">
+        <option vlaue="All" {% if not selected_filter or selected_filter == 'All' %}selected{% endif %}>All</option>
+        {%  for m in available_metrics %}
+            <option value="{{ m }}" {%  if m == selected_filter %}selected{% endif %}>{{ m }}</option>
+        {%  endfor %}
+    </select>
+</form>
+
+{%  if previous_results %}
+    <h3>Previous results</h3>
     <ul>
-    {%  for c in recent %}
+    {%  for r in previous_results %}
         <li>
-            <strong>{{  c.created_at | date:"Y-m-d H:i" }}</strong><br>
-            <em>Metrics:</em> {{ c.metrics_used }}<br>
+            <strong>{{  r.created_at|localtime|date:"Y-m-d H:i" }}</strong><br>
+            <em>Metrics:</em> {{ r.metrics_used }}<br>
             <em>Result:</em>
             <ul>
-                {%  for key, value in c.results.items %}
+                {%  for key, value in r.results.items %}
                     <li>{{ key }}: {{ value }}</li>
                 {% endfor %}<br>
             </ul>
-        <em>Baseline excerpt: </em>
+        <em>Baseline script: </em>
         <div class="toggle-container">
-            <pre class="excerpt">{{ c.baseline_script | truncatechars:120 }}</pre>
-            <pre class="full-text" style="display:none;">{{  c.baseline_script }}</pre>
+            <pre class="excerpt">{{ r.baseline_script | truncatechars:120 }}</pre>
+            <pre class="full-text" style="display:none;">{{  r.baseline_script }}</pre>
             <a href="#" class="toggle-link">Show more</a><br><br>
         </div>
 
-        <em>AI script excerpt: </em>
+        <em>AI script: </em>
         <div class="toggle-container">
-            <pre class="excerpt">{{ c.ai_script | truncatechars:120 }}</pre>
-            <pre class="full-text" style="display:none;">{{  c.ai_script }}</pre>
+            <pre class="excerpt">{{ r.ai_script | truncatechars:120 }}</pre>
+            <pre class="full-text" style="display:none;">{{  r.ai_script }}</pre>
             <a href="#" class="toggle-link">Show more</a><br><br>
         </div>
         </li>
