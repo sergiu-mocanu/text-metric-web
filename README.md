@@ -34,8 +34,8 @@ ___
 
 ```
 # Clone repository
-git clone git@github.com:sergiu-mocanu/text-metric-web.git
-cd text-metric-web
+git clone git@github.com:sergiu-mocanu/text-metrics-web.git
+cd text-metrics-web
 
 # (Optional) Create and activate environment
 conda create -n metrics_env python=3.11 pip
