@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Comparison
+from .models import Comparison, Metric
 
 import json
 
@@ -36,9 +36,11 @@ def metrics_view(request):
             comparison = Comparison.objects.create(
                 baseline_script=baseline_script,
                 ai_script=ai_script,
-                metrics_used=', '.join(selected_metrics),
-                results=similarity_scores
+                results=similarity_scores,
             )
+
+            metrics = Metric.objects.filter(name__in=selected_metrics)
+            comparison.metrics_used.set(metrics)
 
     previous_results = Comparison.objects.all().order_by('-created_at')
     if comparison is not None:
@@ -46,7 +48,7 @@ def metrics_view(request):
 
     selected_filter = request.GET.get('filter_metric')
     if selected_filter and selected_filter != 'All':
-        previous_results = previous_results.filter(metrics_used__contains=selected_filter)
+        previous_results = previous_results.filter(metrics_used__name=selected_filter)
 
     previous_results = previous_results[:5]
 
